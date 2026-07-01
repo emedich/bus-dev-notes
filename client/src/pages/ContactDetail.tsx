@@ -179,9 +179,8 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
     onSuccess: () => {
       toast.success("All changes saved to Keap.");
       setReviewOpen(false);
-      setStaged({ tagIds: [], applyStopCampaign: false });
-      setEditingPhone(false);
-      utils.keap.getContact.invalidate({ contactId: initial.id });
+      // Return to search page after successful save
+      onBack();
     },
     onError: (e: { message: string }) => toast.error(e.message),
   });
