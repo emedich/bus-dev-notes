@@ -62,101 +62,94 @@ const TAG_LABELS: Record<number, string> = {
   16548: "Find New Contact",
 };
 
+// ─── Auto-generate today's date in M.D.YY format ─────────────────────────────
+function getTodayDate(): string {
+  const now = new Date();
+  return `${now.getMonth() + 1}.${now.getDate()}.${String(now.getFullYear()).slice(-2)}`;
+}
+
 // ─── Note Entry Form ──────────────────────────────────────────────────────────
 interface NoteFormProps {
   onStage: (date: string, initials: string, note: string) => void;
+  onUnstage: () => void;
   staged: NoteEntry | undefined;
-  onClear: () => void;
+  existingNotes: string;
 }
 
-function NoteEntryForm({ onStage, staged, onClear }: NoteFormProps) {
-  const [date, setDate] = useState("");
+function NoteEntryForm({ onStage, onUnstage, staged, existingNotes }: NoteFormProps) {
+  const today = getTodayDate();
   const [initials, setInitials] = useState("");
   const [note, setNote] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!date.trim()) e.date = "Date is required.";
-    else if (!/^(0?[1-9]|1[0-2])\.(0?[1-9]|[12]\d|3[01])\.\d{2}$/.test(date.trim()))
-      e.date = "Use M.D.YY format (e.g. 7.1.26).";
-    if (!initials.trim()) e.initials = "Initials are required.";
-    if (!note.trim()) e.note = "Note text is required.";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleStage = () => {
-    if (!validate()) return;
-    onStage(date.trim(), initials.trim(), note.trim());
-    setDate("");
-    setInitials("");
-    setNote("");
-    setErrors({});
+  // Stage automatically whenever both initials and note are non-empty
+  const tryStage = (newInitials: string, newNote: string) => {
+    if (newInitials.trim() && newNote.trim()) {
+      onStage(today, newInitials.trim(), newNote.trim());
+    } else {
+      onUnstage();
+    }
   };
 
   if (staged) {
     return (
-      <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-3 flex items-start justify-between gap-2">
-        <div className="flex items-start gap-2 min-w-0">
-          <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
-          <p className="text-xs text-green-800 break-words">
-            <span className="font-medium">{staged.date} — {staged.initials.toUpperCase()}</span>
-            {" "}— {staged.note}
-          </p>
+      <div className="mt-3 space-y-3">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2 min-w-0">
+            <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+            <p className="text-xs text-green-800 break-words">
+              <span className="font-medium">{staged.date} — {staged.initials.toUpperCase()}</span>
+              {" "}— {staged.note}
+            </p>
+          </div>
+          <button
+            onClick={() => { onUnstage(); setInitials(""); setNote(""); }}
+            className="text-green-600 hover:text-green-800 shrink-0"
+            title="Edit"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
         </div>
-        <button onClick={onClear} className="text-green-600 hover:text-green-800 shrink-0" title="Remove">
-          <X className="h-3.5 w-3.5" />
-        </button>
       </div>
     );
   }
 
   return (
     <div className="space-y-3 pt-3">
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">
-            Date <span className="text-destructive">*</span>
-          </label>
-          <Input
-            placeholder="7.1.26"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className={`h-8 text-sm ${errors.date ? "border-destructive" : ""}`}
-          />
-          {errors.date && <p className="text-xs text-destructive mt-1">{errors.date}</p>}
+      <div className="flex items-center gap-2">
+        <div className="bg-muted/50 border border-border rounded px-2 py-1 text-xs text-muted-foreground font-mono shrink-0">
+          {today}
         </div>
-        <div>
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">
-            Initials <span className="text-destructive">*</span>
-          </label>
+        <div className="flex-1">
           <Input
-            placeholder="JD"
+            placeholder="Initials (e.g. JD)"
             value={initials}
-            onChange={(e) => setInitials(e.target.value.toUpperCase())}
+            onChange={(e) => {
+              const val = e.target.value.toUpperCase();
+              setInitials(val);
+              tryStage(val, note);
+            }}
             maxLength={6}
-            className={`h-8 text-sm ${errors.initials ? "border-destructive" : ""}`}
+            className="h-8 text-sm"
           />
-          {errors.initials && <p className="text-xs text-destructive mt-1">{errors.initials}</p>}
         </div>
       </div>
       <div>
-        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1 block">
-          Note <span className="text-destructive">*</span>
-        </label>
         <Textarea
           placeholder="Enter note text..."
           value={note}
-          onChange={(e) => setNote(e.target.value)}
+          onChange={(e) => {
+            setNote(e.target.value);
+            tryStage(initials, e.target.value);
+          }}
           rows={3}
-          className={`text-sm resize-none ${errors.note ? "border-destructive" : ""}`}
+          className="text-sm resize-none"
         />
-        {errors.note && <p className="text-xs text-destructive mt-1">{errors.note}</p>}
+        {(!initials.trim() || !note.trim()) && (initials || note) && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {!initials.trim() ? "Add your initials to stage this note." : "Add note text to stage this note."}
+          </p>
+        )}
       </div>
-      <Button onClick={handleStage} size="sm" variant="outline" className="w-full">
-        Stage Note
-      </Button>
     </div>
   );
 }
@@ -356,10 +349,11 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
 
           <NoteEntryForm
             staged={staged.sellSideNote}
+            existingNotes={contact.sellSideNotes}
             onStage={(date, initials, note) =>
               setStaged((s) => ({ ...s, sellSideNote: { date, initials, note, existingNotes: contact.sellSideNotes } }))
             }
-            onClear={() => setStaged((s) => { const { sellSideNote: _, ...rest } = s; return rest as StagedChanges; })}
+            onUnstage={() => setStaged((s) => { const { sellSideNote: _, ...rest } = s; return rest as StagedChanges; })}
           />
         </div>
 
@@ -381,10 +375,11 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
 
           <NoteEntryForm
             staged={staged.personNote}
+            existingNotes={contact.personNotes}
             onStage={(date, initials, note) =>
               setStaged((s) => ({ ...s, personNote: { date, initials, note, existingNotes: contact.personNotes } }))
             }
-            onClear={() => setStaged((s) => { const { personNote: _, ...rest } = s; return rest as StagedChanges; })}
+            onUnstage={() => setStaged((s) => { const { personNote: _, ...rest } = s; return rest as StagedChanges; })}
           />
         </div>
       </div>
