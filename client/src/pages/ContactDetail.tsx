@@ -205,10 +205,6 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
   const stageTag = (tagId: number) => {
     if (isTagStaged(tagId)) return;
     setStaged((s) => ({ ...s, tagIds: [...s.tagIds, tagId] }));
-    // Find New Contact also stages stop campaign prompt
-    if (tagId === TAG_IDS.FIND_NEW_CONTACT) {
-      setStaged((s) => ({ ...s, applyStopCampaign: true }));
-    }
   };
 
   const unstageTag = (tagId: number) => {
