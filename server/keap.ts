@@ -4,8 +4,8 @@ const KEAP_BASE = "https://api.infusionsoft.com/crm/rest/v1";
 
 // ─── Custom Field IDs (Calder Capital account) ────────────────────────────────
 export const FIELD_IDS = {
-  SELL_SIDE_PROSPECT_NOTES: 299, // "Calder Sell-Side Email List" — used as sell-side prospect notes
-  BUY_SIDE_NOTES: 315,           // "Seller Prospect - Buyside Notes" — read-only
+  SELL_SIDE_PROSPECT_NOTES: 295, // "Call Notes" — sell-side prospect notes
+  BUY_SIDE_NOTES: 315,           // "Notes" — buy-side notes (read-only)
 } as const;
 
 // ─── Tag IDs ──────────────────────────────────────────────────────────────────
