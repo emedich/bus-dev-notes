@@ -81,12 +81,10 @@ function NoteEntryForm({ onStage, onUnstage, staged, existingNotes }: NoteFormPr
   const [initials, setInitials] = useState("");
   const [note, setNote] = useState("");
 
-  // Stage automatically whenever both initials and note are non-empty
-  const tryStage = (newInitials: string, newNote: string) => {
-    if (newInitials.trim() && newNote.trim()) {
-      onStage(today, newInitials.trim(), newNote.trim());
-    } else {
-      onUnstage();
+  // Stage only when the user leaves a field (blur), not on every keystroke
+  const tryStageOnBlur = (latestInitials: string, latestNote: string) => {
+    if (latestInitials.trim() && latestNote.trim()) {
+      onStage(today, latestInitials.trim(), latestNote.trim());
     }
   };
 
@@ -123,11 +121,8 @@ function NoteEntryForm({ onStage, onUnstage, staged, existingNotes }: NoteFormPr
           <Input
             placeholder="Initials (e.g. JD)"
             value={initials}
-            onChange={(e) => {
-              const val = e.target.value.toUpperCase();
-              setInitials(val);
-              tryStage(val, note);
-            }}
+            onChange={(e) => setInitials(e.target.value.toUpperCase())}
+            onBlur={() => tryStageOnBlur(initials, note)}
             maxLength={6}
             className="h-8 text-sm"
           />
@@ -137,14 +132,12 @@ function NoteEntryForm({ onStage, onUnstage, staged, existingNotes }: NoteFormPr
         <Textarea
           placeholder="Enter note text..."
           value={note}
-          onChange={(e) => {
-            setNote(e.target.value);
-            tryStage(initials, e.target.value);
-          }}
+          onChange={(e) => setNote(e.target.value)}
+          onBlur={() => tryStageOnBlur(initials, note)}
           rows={3}
           className="text-sm resize-none"
         />
-        {(!initials.trim() || !note.trim()) && (initials || note) && (
+        {(initials.trim() || note.trim()) && !(initials.trim() && note.trim()) && (
           <p className="text-xs text-muted-foreground mt-1">
             {!initials.trim() ? "Add your initials to stage this note." : "Add note text to stage this note."}
           </p>
