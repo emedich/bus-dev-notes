@@ -19,3 +19,7 @@
 - [x] Wire Find New Contact tag to also trigger the stop-campaign question dialog
 - [x] Add vitest coverage for tag application payload and duplicate search handling
 - [x] Save checkpoint
+- [x] Add applyChanges batch tRPC procedure (phone + notes + tags in one call)
+- [x] Refactor ContactDetail: stage all changes locally, no immediate writes
+- [x] Add Review & Save button that opens summary dialog (list of queued changes + single Proceed button)
+- [x] Test and checkpoint

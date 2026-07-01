@@ -54,64 +54,75 @@ export const keapRouter = router({
       return toContactSummary(full);
     }),
 
-  // ── Update phone ─────────────────────────────────────────────────────────
-  updatePhone: protectedProcedure
-    .input(z.object({ contactId: z.number().int().positive(), phone: z.string().min(1, "Phone number is required.") }))
-    .mutation(async ({ input }) => {
-      await updatePhone(input.contactId, input.phone);
-      return { success: true };
-    }),
-
-  // ── Update person notes ──────────────────────────────────────────────────
-  updatePersonNotes: protectedProcedure
+  // ── Apply all staged changes in one batch ────────────────────────────────
+  applyChanges: protectedProcedure
     .input(
       z.object({
         contactId: z.number().int().positive(),
-        existingNotes: z.string(),
-        date: z.string().min(1, "Date is required."),
-        initials: z.string().min(1, "Initials are required."),
-        note: z.string().min(1, "Note text is required."),
+        // Phone
+        phone: z.string().optional(),
+        // Person notes entry
+        personNote: z
+          .object({
+            existingNotes: z.string(),
+            date: z.string().min(1),
+            initials: z.string().min(1),
+            note: z.string().min(1),
+          })
+          .optional(),
+        // Sell-side notes entry
+        sellSideNote: z
+          .object({
+            existingNotes: z.string(),
+            date: z.string().min(1),
+            initials: z.string().min(1),
+            note: z.string().min(1),
+          })
+          .optional(),
+        // Tag IDs to apply (plain integers)
+        tagIds: z.array(z.number().int().positive()).optional(),
+        // Apply Stop Campaign tag (looked up by name)
+        applyStopCampaign: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
-      const entry = buildNoteEntry({ date: input.date, initials: input.initials, note: input.note });
-      const updated = prependNote(input.existingNotes, entry);
-      await updatePersonNotes(input.contactId, updated);
-      return { success: true, updatedNotes: updated };
-    }),
+      const promises: Promise<unknown>[] = [];
 
-  // ── Update sell-side prospect notes ─────────────────────────────────────
-  updateSellSideNotes: protectedProcedure
-    .input(
-      z.object({
-        contactId: z.number().int().positive(),
-        existingNotes: z.string(),
-        date: z.string().min(1, "Date is required."),
-        initials: z.string().min(1, "Initials are required."),
-        note: z.string().min(1, "Note text is required."),
-      })
-    )
-    .mutation(async ({ input }) => {
-      const entry = buildNoteEntry({ date: input.date, initials: input.initials, note: input.note });
-      const updated = prependNote(input.existingNotes, entry);
-      await updateCustomField(input.contactId, FIELD_IDS.SELL_SIDE_PROSPECT_NOTES, updated);
-      return { success: true, updatedNotes: updated };
-    }),
+      // Phone
+      if (input.phone !== undefined) {
+        promises.push(updatePhone(input.contactId, input.phone));
+      }
 
-  // ── Apply tag ────────────────────────────────────────────────────────────
-  applyTag: protectedProcedure
-    .input(z.object({ contactId: z.number().int().positive(), tagId: z.number().int().positive() }))
-    .mutation(async ({ input }) => {
-      await applyTag(input.contactId, input.tagId);
-      return { success: true };
-    }),
+      // Person notes
+      if (input.personNote) {
+        const { existingNotes, date, initials, note } = input.personNote;
+        const entry = buildNoteEntry({ date, initials, note });
+        const updated = prependNote(existingNotes, entry);
+        promises.push(updatePersonNotes(input.contactId, updated));
+      }
 
-  // ── Apply Stop Campaign tag (looked up by name) ──────────────────────────
-  applyStopCampaignTag: protectedProcedure
-    .input(z.object({ contactId: z.number().int().positive() }))
-    .mutation(async ({ input }) => {
-      const tagId = await getStopCampaignTagId();
-      await applyTag(input.contactId, tagId);
+      // Sell-side notes
+      if (input.sellSideNote) {
+        const { existingNotes, date, initials, note } = input.sellSideNote;
+        const entry = buildNoteEntry({ date, initials, note });
+        const updated = prependNote(existingNotes, entry);
+        promises.push(updateCustomField(input.contactId, FIELD_IDS.SELL_SIDE_PROSPECT_NOTES, updated));
+      }
+
+      // Standard tags
+      if (input.tagIds?.length) {
+        for (const tagId of input.tagIds) {
+          promises.push(applyTag(input.contactId, tagId));
+        }
+      }
+
+      // Stop Campaign tag
+      if (input.applyStopCampaign) {
+        const tagId = await getStopCampaignTagId();
+        promises.push(applyTag(input.contactId, tagId));
+      }
+
+      await Promise.all(promises);
       return { success: true };
     }),
 });
