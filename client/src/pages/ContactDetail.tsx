@@ -196,7 +196,6 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
 
   // ── Tag confirm state ─────────────────────────────────────────────────────
 
-  const [stopCampaignConfirm, setStopCampaignConfirm] = useState(false);
   // After applying Find New Contact, prompt about stop campaign
   const [postRetiredStopCampaign, setPostRetiredStopCampaign] = useState(false);
 
@@ -245,7 +244,6 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
   const applyStopCampaign = trpc.keap.applyStopCampaignTag.useMutation({
     onSuccess: () => {
       toast.success("Stop Campaign tag applied.");
-      setStopCampaignConfirm(false);
       utils.keap.getContact.invalidate({ contactId: initial.id });
     },
     onError: (e) => toast.error(e.message),
@@ -481,10 +479,11 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setStopCampaignConfirm(true)}
+              disabled={applyStopCampaign.isPending}
+              onClick={() => applyStopCampaign.mutate({ contactId: contact.id })}
               className="shrink-0 border-amber-400 hover:bg-amber-100 text-amber-900 font-medium"
             >
-              Stop Campaign
+              {applyStopCampaign.isPending ? "Applying..." : "Stop Campaign"}
             </Button>
           </div>
         </div>
@@ -581,37 +580,7 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Stop Campaign confirm — exact wording required */}
-      <Dialog open={stopCampaignConfirm} onOpenChange={(v) => !v && setStopCampaignConfirm(false)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-600" />
-              Stop Email Campaign
-            </DialogTitle>
-            <DialogDescription className="text-sm leading-relaxed pt-2">
-              Do you need to stop the email campaign for this contact? Have they requested a stop or are we moving forward in communication with them?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 pt-2 flex-col sm:flex-row">
-            <Button
-              variant="outline"
-              onClick={() => setStopCampaignConfirm(false)}
-              className="sm:order-1"
-            >
-              Moving Forward — No Stop
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => applyStopCampaign.mutate({ contactId: contact.id })}
-              disabled={applyStopCampaign.isPending}
-              className="sm:order-2"
-            >
-              {applyStopCampaign.isPending ? "Applying..." : "Stop Campaign"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }
