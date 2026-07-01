@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: busdev-keap-notes
+    runtime: node
+    plan: free
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false          # Set manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true  # Render auto-generates a secure random value
+      - key: KEAP_ACCESS_TOKEN
+        sync: false          # Set manually in Render dashboard
+      # The following Manus-specific vars are not needed without auth
+      # but kept as stubs so the server starts without errors
+      - key: VITE_APP_ID
+        value: "busdev-keap-notes"
+      - key: OAUTH_SERVER_URL
+        value: "https://api.manus.im"
+      - key: VITE_OAUTH_PORTAL_URL
+        value: "https://manus.im"
+      - key: OWNER_OPEN_ID
+        value: "owner"
+      - key: OWNER_NAME
+        value: "Admin"
+      - key: BUILT_IN_FORGE_API_URL
+        value: "https://api.manus.im"
+      - key: BUILT_IN_FORGE_API_KEY
+        value: "unused"
+      - key: VITE_FRONTEND_FORGE_API_KEY
+        value: "unused"
+      - key: VITE_FRONTEND_FORGE_API_URL
+        value: "https://api.manus.im"
+      - key: VITE_ANALYTICS_ENDPOINT
+        value: ""
+      - key: VITE_ANALYTICS_WEBSITE_ID
+        value: ""

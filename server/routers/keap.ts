@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { publicProcedure, router } from "../_core/trpc";
 import {
   applyTag,
   buildNoteEntry,
@@ -17,7 +17,7 @@ import {
 
 export const keapRouter = router({
   // ── Search by email ──────────────────────────────────────────────────────
-  searchByEmail: protectedProcedure
+  searchByEmail: publicProcedure
     .input(z.object({ email: z.string().email("Enter a valid email address.") }))
     .query(async ({ input }) => {
       const contacts = await searchContactsByEmail(input.email);
@@ -47,7 +47,7 @@ export const keapRouter = router({
     }),
 
   // ── Get contact by ID ────────────────────────────────────────────────────
-  getContact: protectedProcedure
+  getContact: publicProcedure
     .input(z.object({ contactId: z.number().int().positive() }))
     .query(async ({ input }) => {
       const full = await getContact(input.contactId);
@@ -55,7 +55,7 @@ export const keapRouter = router({
     }),
 
   // ── Apply all staged changes in one batch ────────────────────────────────
-  applyChanges: protectedProcedure
+  applyChanges: publicProcedure
     .input(
       z.object({
         contactId: z.number().int().positive(),
