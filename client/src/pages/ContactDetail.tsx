@@ -195,9 +195,7 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
   } | null>(null);
 
   // ── Tag confirm state ─────────────────────────────────────────────────────
-  const [tagConfirm, setTagConfirm] = useState<{
-    tagId: number; label: string; description: string;
-  } | null>(null);
+
   const [stopCampaignConfirm, setStopCampaignConfirm] = useState(false);
   // After applying Find New Contact, prompt about stop campaign
   const [postRetiredStopCampaign, setPostRetiredStopCampaign] = useState(false);
@@ -235,7 +233,6 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
     onSuccess: (_, vars) => {
       toast.success(`Tag applied successfully.`);
       const wasRetiredTag = vars.tagId === TAG_IDS.FIND_NEW_CONTACT;
-      setTagConfirm(null);
       utils.keap.getContact.invalidate({ contactId: initial.id });
       // After applying Find New Contact, prompt about stop campaign
       if (wasRetiredTag) {
@@ -433,12 +430,8 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
             <Button
               size="sm"
               variant="outline"
-              disabled={hasTag(TAG_IDS.ADMIN_OPT_OUT)}
-              onClick={() => setTagConfirm({
-                tagId: TAG_IDS.ADMIN_OPT_OUT,
-                label: "Admin Opt Out",
-                description: "This will apply the 'Admin Opt Out' tag to the contact. This action cannot be undone from this tool.",
-              })}
+              disabled={hasTag(TAG_IDS.ADMIN_OPT_OUT) || applyTag.isPending}
+              onClick={() => applyTag.mutate({ contactId: contact.id, tagId: TAG_IDS.ADMIN_OPT_OUT })}
               className="w-full text-xs"
             >
               {hasTag(TAG_IDS.ADMIN_OPT_OUT) ? "Already Applied" : "Apply Opt-Out"}
@@ -452,12 +445,8 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
             <Button
               size="sm"
               variant="outline"
-              disabled={hasTag(TAG_IDS.COMPANY_CLOSED)}
-              onClick={() => setTagConfirm({
-                tagId: TAG_IDS.COMPANY_CLOSED,
-                label: "Company Closed or Acquired",
-                description: "This will apply the 'Company Closed or Acquired' tag. Confirm this is accurate before proceeding.",
-              })}
+              disabled={hasTag(TAG_IDS.COMPANY_CLOSED) || applyTag.isPending}
+              onClick={() => applyTag.mutate({ contactId: contact.id, tagId: TAG_IDS.COMPANY_CLOSED })}
               className="w-full text-xs"
             >
               {hasTag(TAG_IDS.COMPANY_CLOSED) ? "Already Applied" : "Apply Tag"}
@@ -471,12 +460,8 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
             <Button
               size="sm"
               variant="outline"
-              disabled={hasTag(TAG_IDS.FIND_NEW_CONTACT)}
-              onClick={() => setTagConfirm({
-                tagId: TAG_IDS.FIND_NEW_CONTACT,
-                label: "Find New Contact",
-                description: "This will apply the 'Find New Contact' tag, indicating this contact is retired or has been replaced.",
-              })}
+              disabled={hasTag(TAG_IDS.FIND_NEW_CONTACT) || applyTag.isPending}
+              onClick={() => applyTag.mutate({ contactId: contact.id, tagId: TAG_IDS.FIND_NEW_CONTACT })}
               className="w-full text-xs"
             >
               {hasTag(TAG_IDS.FIND_NEW_CONTACT) ? "Already Applied" : "Apply Tag"}
@@ -559,19 +544,7 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
         onCancel={() => setSellSideNoteConfirm(null)}
       />
 
-      {/* Generic tag confirm */}
-      <ConfirmDialog
-        open={!!tagConfirm}
-        title={`Apply Tag: ${tagConfirm?.label ?? ""}`}
-        description={tagConfirm?.description ?? ""}
-        confirmLabel="Apply Tag"
-        destructive
-        onConfirm={() => {
-          if (!tagConfirm) return;
-          applyTag.mutate({ contactId: contact.id, tagId: tagConfirm.tagId });
-        }}
-        onCancel={() => setTagConfirm(null)}
-      />
+
 
       {/* Post-retired stop campaign prompt */}
       <Dialog open={postRetiredStopCampaign} onOpenChange={(v) => !v && setPostRetiredStopCampaign(false)}>
