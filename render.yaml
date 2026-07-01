@@ -9,7 +9,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false          # Set manually in Render dashboard
+        value: "unused"      # No database needed — all data lives in Keap
       - key: JWT_SECRET
         generateValue: true  # Render auto-generates a secure random value
       - key: KEAP_ACCESS_TOKEN
