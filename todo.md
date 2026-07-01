@@ -1,0 +1,21 @@
+# Sell-Side Prospect Notes Manager — TODO
+
+- [x] Add KEAP_ACCESS_TOKEN secret
+- [x] Create server/keap.ts with all Keap API helpers
+- [x] Create server/routers/keap.ts with tRPC procedures (searchByEmail, getContact, updatePhone, updatePersonNotes, updateSellSideNotes, applyTag)
+- [x] Wire keap router into server/routers.ts
+- [x] Build client: DashboardLayout with sidebar
+- [x] Build client: EmailSearch page (search, duplicate detection)
+- [x] Build client: ContactDetail page (name, company, email, phone inline edit)
+- [x] Build client: PersonNotes panel (editable, date+initials, prepend, confirm)
+- [x] Build client: SellSideProspectNotes panel (emphasized primary, date+initials, prepend, confirm)
+- [x] Build client: BuySideNotes panel (read-only, field ID 315)
+- [x] Build client: OptOut action (tag 22830, confirmation dialog)
+- [x] Build client: SuggestedTags section (17610, 16548, confirmation dialogs)
+- [x] Build client: RetiredContact prompt with exact wording + BusDev Stop Campaign tag
+- [x] Build client: StopCampaign dialog (exact question wording, tag application)
+- [x] Write vitest tests for note building, tag application, duplicate detection
+- [x] Final styling pass — elegant internal-tool aesthetic
+- [x] Wire Find New Contact tag to also trigger the stop-campaign question dialog
+- [x] Add vitest coverage for tag application payload and duplicate search handling
+- [x] Save checkpoint
