@@ -170,7 +170,7 @@ function DashboardLayoutContent({
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="font-semibold tracking-tight truncate text-sidebar-foreground">
-                    Sell-Side Notes
+                    BusDev Keap Notes
                   </span>
                 </div>
               ) : null}
