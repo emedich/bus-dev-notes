@@ -423,7 +423,9 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
           <h3 className="font-semibold text-foreground">Contact Actions</h3>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Row 1: three tag actions */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
           {/* Opt Out */}
           <div className="border border-border rounded-lg p-4 space-y-2">
             <p className="text-sm font-medium text-foreground">Opt-Out Contact</p>
@@ -480,16 +482,22 @@ export default function ContactDetail({ contact: initial, onBack }: Props) {
               {hasTag(TAG_IDS.FIND_NEW_CONTACT) ? "Already Applied" : "Apply Tag"}
             </Button>
           </div>
+        </div>
 
-          {/* Stop Campaign */}
-          <div className="border border-border rounded-lg p-4 space-y-2 border-amber-200 bg-amber-50/40">
-            <p className="text-sm font-medium text-foreground">Stop Email Campaign</p>
-            <p className="text-xs text-muted-foreground">Apply the BusDev Stop Campaign tag (Prospect Tags).</p>
+        {/* Row 2: Stop Campaign — full width, standalone */}
+        <div className="border-2 border-amber-300 bg-amber-50/50 rounded-lg p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1 flex-1">
+              <p className="text-sm font-semibold text-foreground">Stop Email Campaign</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Apply this tag if the contact is no longer applicable to further marketing outreach, or if a successful connection has been made and all future communication should be handled manually going forward. This applies the <span className="font-medium text-foreground">BusDev — Stop Campaign</span> tag under the Prospect Tags category.
+              </p>
+            </div>
             <Button
               size="sm"
               variant="outline"
               onClick={() => setStopCampaignConfirm(true)}
-              className="w-full text-xs border-amber-300 hover:bg-amber-50"
+              className="shrink-0 border-amber-400 hover:bg-amber-100 text-amber-900 font-medium"
             >
               Stop Campaign
             </Button>
